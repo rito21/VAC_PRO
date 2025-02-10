@@ -1,0 +1,45 @@
+/* Resta del CSS ... */
+
+.hero {
+    text-align: center;
+    padding: 50px 20px;
+    background-color: #ffffff; /* O un color lleuger adequat */
+    color: #000000; /* Text en negre o un color fosc */
+}
+
+h1 {
+    font-size: 3rem; /* Títol gran */
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 2rem; /* Subtítol destacat */
+    color: #e63946; /* Un color atrevit per al subtítol */
+    margin-bottom: 30px;
+}
+
+.hero-buttons {
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 10px 20px;
+    margin-right: 10px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #e63946; /* Color atrevit per al botó principal */
+    color: #ffffff;
+}
+
+.btn-secondary {
+    background-color: #f1faee; /* Color clar per al segon botó */
+    color: #e63946; /* Color atrevit que coincideix amb el botó principal */
+}
+
+/* Afegeix estils per als botons en hover i altres estats si és necessari */
