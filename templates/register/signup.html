@@ -1,0 +1,43 @@
+{% extends "/base.html" %}
+
+{% block title %}Registre - WeatherTech{% endblock %}
+
+{% block content %}
+<div class="container h-100">
+    <div class="row h-100 justify-content-center align-items-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center">Registre</h3>
+                    {% if error_message %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error_message }}
+                    </div>
+                    {% endif %}
+                    <form action="/signup" method="post">
+                        <div class="mb-3">
+                            <label for="nom_complet" class="form-label">Nom complet:</label>
+                            <input type="text" class="form-control" id="nom_complet" name="nom_complet" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="correu_electronic" class="form-label">Correu electrònic:</label>
+                            <input type="email" class="form-control" id="correu_electronic" name="correu_electronic"
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contrasenya" class="form-label">Contrasenya:</label>
+                            <input type="password" class="form-control" id="contrasenya" name="contrasenya" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Registra't</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <a href="/login">Ja tens un compte? Inicia sessió</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
