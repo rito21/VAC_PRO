@@ -13,3 +13,8 @@ def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
 @router.get("/items/", response_model=List[schemas.Item])
 def get_items(db: Session = Depends(get_db)):
     return crud.get_items(db)
+
+@app.get("/items/", response_model=List[schemas.Item])
+def get_items(db: Session = Depends(get_db)):
+    return db.query(models.Item).all()
+
