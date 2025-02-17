@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+#exemple
 class AppConfigBase(BaseModel):
     smtp_server: str
     smtp_user: str
