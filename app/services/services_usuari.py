@@ -4,14 +4,14 @@ from sqlalchemy.orm import Session
 from starlette import status
 from werkzeug.security import generate_password_hash
 
-from app.models.usuari import Usuari
+from app.models.usuari import DbUsuari
 from app.schemas.usuari import UsuariCreate
 
 
 def create_user(db: Session, user: UsuariCreate):
     try:
         hashed_password = generate_password_hash(user.contrasenya)  # Encriptació de la contrasenya
-        db_user = Usuari(correu_electronic=user.correu_electronic, contrasenya=hashed_password, nom_complet=user.nom_complet)
+        db_user = DbUsuari(correu_electronic=user.correu_electronic, contrasenya=hashed_password, nom_complet=user.nom_complet)
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
@@ -23,5 +23,5 @@ def create_user(db: Session, user: UsuariCreate):
 
 
 def get_user_by_email(db: Session, email: EmailStr):
-    user = db.query(Usuari).filter(Usuari.correu_electronic == email).first()
+    user = db.query(DbUsuari).filter(DbUsuari.correu_electronic == email).first()
     return user
