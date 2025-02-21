@@ -11,4 +11,4 @@ class ConfigInDB(ConfigBase):
     data_ultim_canvi_contrasenya: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

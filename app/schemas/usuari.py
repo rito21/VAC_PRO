@@ -23,4 +23,4 @@ class UsuariInDB(UsuariBase):
     compte_verificat: bool
 
     class Config:
-        orm_mode = True  # Para que pueda interactuar con los modelos de SQLAlchemy
+        from_attributes = True  # Para que pueda interactuar con los modelos de SQLAlchemy

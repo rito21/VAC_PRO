@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 
+
 Base = declarative_base()
 
 class Usuari(Base):
@@ -21,8 +22,5 @@ class Usuari(Base):
     baixa = Column(Boolean, default=False)
     compte_verificat = Column(Boolean, default=False)
 
-    # Relación con db_empresa
+    # Relación con db_empresa (importación como string)
     empresa = relationship("DbEmpresa", back_populates="usuaris")
-
-
-
