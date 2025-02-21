@@ -11,4 +11,4 @@ class DbEmpresa(Base):
     nom_empresa = Column(String(100), nullable=False)
 
     # Relación con db_usuari
-    usuaris = relationship("DbUsuari", back_populates="empresa")
+    usuaris = relationship("Usuari", back_populates="empresa")

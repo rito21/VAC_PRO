@@ -5,14 +5,14 @@ from sqlalchemy.sql import func
 
 Base = declarative_base()
 
-class DbUsuari(Base):
+class Usuari(Base):
     __tablename__ = 'db_usuari'
 
     id = Column(Integer, primary_key=True, index=True)
     id_empresa = Column(Integer, ForeignKey('db_empresa.id'), nullable=False)
     nom = Column(String(50), nullable=False)
     cognoms = Column(String(50), nullable=False)
-    correu = Column(String(100), unique=True, nullable=False)
+    correu_electronic = Column(String(100), unique=True, nullable=False)
     contrasenya = Column(Text, nullable=False)
     data_registre = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     ultim_canvi_contrasenya = Column(TIMESTAMP, server_default=func.now(), nullable=False)
@@ -23,3 +23,6 @@ class DbUsuari(Base):
 
     # Relación con db_empresa
     empresa = relationship("DbEmpresa", back_populates="usuaris")
+
+
+

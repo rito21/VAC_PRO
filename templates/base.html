@@ -50,15 +50,30 @@
       </nav>
 
       <a class="btn-login" href="/login">Login</a>
+              <a class="btn-singup" href="/signup">SignUp</a>
+
 
     </div>
   </header>
 
   <main class="main">
 
-    {% block content %}
+
+
+
+    <div class="page-title light-background">
+      <div class="container">
+                    {% block content %}
     <!-- Contingut principal aquí -->
     {% endblock %}
+                </div>
+            </div>
+
+
+
+    </div>
+
+
 
   </main>
 
