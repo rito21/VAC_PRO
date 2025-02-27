@@ -15,4 +15,4 @@ class EmpresaInDB(EmpresaBase):
     usuaris: List[UsuariInDB]  # Relación con usuarios, si es necesario
 
     class Config:
-        orm_mode = True
+        from_attributes = True

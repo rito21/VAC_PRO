@@ -10,5 +10,5 @@ class DbEmpresa(Base):
     id = Column(Integer, primary_key=True, index=True)
     nom_empresa = Column(String(100), nullable=False)
 
-    # Relación con db_usuari
-    usuaris = relationship("DbUsuari", back_populates="empresa")
+    # Relación con db_usuari (importación como string)
+    usuaris = relationship("Usuari", back_populates="empresa")

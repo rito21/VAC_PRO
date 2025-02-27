@@ -1,7 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-
+from app.routers.login import router as login_router
+from app.routers.signup import router as sign_router
+from app.routers.index import router as index_router
 app = FastAPI()
 
 # Montar archivos estáticos (CSS, JS, imágenes, etc.)
@@ -14,3 +16,14 @@ templates = Jinja2Templates(directory="./templates")
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+
+# @app.get("/login")
+# async def login(request: Request):
+#     return templates.TemplateResponse("register/login.html", {"request": request})
+#
+
+
+app.include_router(login_router)
+app.include_router(sign_router)
+
+app.include_router(index_router)

@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash
 
 from app.dependencies import get_db
 from app.settings import ACCESS_TOKEN_EXPIRE_SECONDS, SECRET_KEY, ALGORITHM, settings
-from app.models.usuari import DbUsuari
+from app.models.usuari import Usuari
 
 
 def authenticate_user(email: str, password: str, db: Session):
@@ -24,7 +24,7 @@ def authenticate_user(email: str, password: str, db: Session):
      Llença:
         HTTPException: Si no es troba l'usuari, el compte està bloquejat per intents d'inici de sessió excessius o la contrasenya és incorrecta.
     """
-    user = db.query(DbUsuari).filter(DbUsuari.correu == email).first()
+    user = db.query(Usuari).filter(Usuari.correu == email).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuari no trobat")
     if user.intents_fallits_login >= 5:
@@ -67,7 +67,7 @@ def verify_password(plain_password, hashed_password):
     return check_password_hash(hashed_password, plain_password)
 
 
-def create_access_token(user: DbUsuari):
+def create_access_token(user: Usuari):
     """
     Crea un token d'accés per a un usuari donat.
     """
@@ -110,7 +110,7 @@ def get_current_user(token: str, db: Session = Depends(get_db)):
     if not verify_token(token):
         raise credentials_exception
     username = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]).get("correu")
-    user = db.query(DbUsuari).filter(DbUsuari.correu == username).first()
+    user = db.query(Usuari).filter(Usuari.correu == username).first()
     if user is None:
         raise credentials_exception
     return user
