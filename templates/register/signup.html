@@ -14,14 +14,14 @@
                         {{ error_message }}
                     </div>
                     {% endif %}
-                    <form action="/signup" method="post">
+                    <form action="/signup/" method="post">  <!-- Añadí "/" al action para coincidir con la ruta -->
                         <div class="mb-3">
-                            <label for="nom_complet" class="form-label">Nom:</label>
-                            <input type="text" class="form-control" id="nom_complet" name="nom_complet" required>
+                            <label for="nom" class="form-label">Nom:</label>
+                            <input type="text" class="form-control" id="nom" name="nom" required>
                         </div>
                         <div class="mb-3">
-                            <label for="cognom" class="form-label">Cognom:</label>
-                            <input type="text" class="form-control" id="cognom" name="cognom" required>
+                            <label for="cognoms" class="form-label">Cognoms:</label>
+                            <input type="text" class="form-control" id="cognoms" name="cognoms" required>
                         </div>
                         <div class="mb-3">
                             <label for="correu_electronic" class="form-label">Correu electrònic:</label>

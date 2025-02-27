@@ -1,14 +1,13 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from app.database import Base
 
-Base = declarative_base()
 
 class DbEmpresa(Base):
-    __tablename__ = 'db_empresa'
+    __tablename__ = "db_empresa"
 
     id = Column(Integer, primary_key=True, index=True)
     nom_empresa = Column(String(100), nullable=False)
 
-    # Relación con db_usuari (importación como string)
     usuaris = relationship("Usuari", back_populates="empresa")
+    configs = relationship("TblConfig", back_populates="empresa_rel")  # Cambiamos a empresa_rel

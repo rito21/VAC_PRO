@@ -10,5 +10,4 @@ class ConfigInDB(ConfigBase):
     empresa_id: int
     data_ultim_canvi_contrasenya: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}  # Pydantic v2

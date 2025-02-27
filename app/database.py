@@ -1,30 +1,55 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Configuración de la URL de la base de datos (ajusta según tu base de datos)
-DATABASE_URL = "sqlite:///./test.db"  # Para SQLite
-# DATABASE_URL = "postgresql://user:password@localhost/dbname"  # Para PostgreSQL
-# DATABASE_URL = "mysql+pymysql://user:password@localhost/dbname"  # Para MySQL
+DATABASE_URL = "sqlite:///./test.db"  # Ajusta según tu base de datos
 
-# Creación del motor de base de datos
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}  # Evita errores en SQLite
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
 )
 
-# Creación de la sesión local
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base para los modelos de SQLAlchemy
 Base = declarative_base()
 
+
+def init_db():
+    """Inicializa la base de datos con una empresa predeterminada y su configuración."""
+    from app.models.empresa import DbEmpresa
+    from app.models.usuari import Usuari
+    from app.models.config import TblConfig
+
+    # Verificamos si las tablas ya existen usando inspect
+    inspector = inspect(engine)
+    tables_exist = inspector.has_table("db_empresa")
+
+    # Creamos las tablas solo si no existen
+    if not tables_exist:
+        Base.metadata.create_all(bind=engine)
+
+    # Ahora abrimos la sesión para inicializar datos
+    with SessionLocal() as db:
+        if not db.query(DbEmpresa).filter(DbEmpresa.id == 1).first():
+            empresa = DbEmpresa(id=1, nom_empresa="Empresa Única")
+            db.add(empresa)
+            db.commit()
+            db.refresh(empresa)
+            config = TblConfig(
+                empresa=1,
+                longitud_minima_contrasenya=8,
+                intents_fallits_maxims=5
+            )
+            db.add(config)
+            db.commit()
+
+
 def get_db():
-    """
-    Dependencia para obtener una sesión de base de datos.
-    Se usa en las rutas para manejar la conexión de manera segura.
-    """
+    """Dependencia para obtener una sesión de base de datos."""
     db = SessionLocal()
     try:
-        yield db  # Entrega la sesión al contexto de ejecución
+        yield db
     finally:
-        db.close()  # Cierra la sesión al finalizar
+        db.close()
+
+
+# Llamamos a init_db solo una vez al importar el módulo
+init_db()

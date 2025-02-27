@@ -1,20 +1,18 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
-from typing import Optional
 
 class UsuariBase(BaseModel):
+    correu_electronic: EmailStr
     nom: str
     cognoms: str
-    correu: EmailStr
 
 class UsuariCreate(UsuariBase):
-    contrasenya: str  # Al recibir datos, no almacenamos contraseñas directamente, solo el hash
+    contrasenya: str
+    id_empresa: int = 1  # Valor por defecto para la empresa única
 
-class UsuariUpdate(UsuariBase):
-    contrasenya: Optional[str] = None  # Solo actualizamos la contraseña si se envía
-
-class UsuariInDB(UsuariBase):
+class Usuari(UsuariBase):
     id: int
+    id_empresa: int
     data_registre: datetime
     ultim_canvi_contrasenya: datetime
     intents_fallits_login: int
@@ -22,5 +20,4 @@ class UsuariInDB(UsuariBase):
     baixa: bool
     compte_verificat: bool
 
-    class Config:
-        from_attributes = True  # Para que pueda interactuar con los modelos de SQLAlchemy
+    model_config = ConfigDict(from_attributes=True)

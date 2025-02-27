@@ -1,15 +1,9 @@
-# app/schemas/app_config.py
 from pydantic import BaseModel
 
-class AppConfigBase(BaseModel):
-    key: str
-    value: str
-
-class AppConfigCreate(AppConfigBase):
-    pass
-
-class AppConfig(AppConfigBase):
+class App_Config(BaseModel):
+    smtp_server: str
+    smtp_user: str
+    smtp_password: str
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}  # Pydantic v2

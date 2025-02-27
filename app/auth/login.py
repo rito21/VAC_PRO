@@ -3,28 +3,34 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from fastapi import HTTPException, Depends, status
-from jose import jwt, JWTError
+from passlib.context import CryptContext
+import jwt
 from sqlalchemy.orm import Session
-from werkzeug.security import check_password_hash
 
-from app.dependencies import get_db
+from app.database import get_db
 from app.settings import ACCESS_TOKEN_EXPIRE_SECONDS, SECRET_KEY, ALGORITHM, settings
 from app.models.usuari import Usuari
+from app.models.config import TblConfig
+
+# Configuración de passlib para hashear contraseñas
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def authenticate_user(email: str, password: str, db: Session):
+def hash_password(password: str) -> str:
+    """Hashea una contraseña usando bcrypt."""
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verifica si una contraseña en texto plano coincide con una hasheada."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def authenticate_user(email: str, password: str, db: Session) -> Usuari:
     """
-    Autentica un usuari basant-se en el seu correu electrònic i contrasenya.
-     Paràmetres:
-        email (str): El correu electrònic de l'usuari.
-        password (str): La contrasenya de l'usuari.
-        db (Session): L'objecte de sessió de la base de dades.
-     Retorna:
-        user: L'objecte d'usuari autenticat.
-     Llença:
-        HTTPException: Si no es troba l'usuari, el compte està bloquejat per intents d'inici de sessió excessius o la contrasenya és incorrecta.
+    Autentica un usuario basándose en su correo electrónico y contraseña.
     """
-    user = db.query(Usuari).filter(Usuari.correu == email).first()
+    user = db.query(Usuari).filter(Usuari.correu_electronic == email).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuari no trobat")
     if user.intents_fallits_login >= 5:
@@ -38,18 +44,15 @@ def authenticate_user(email: str, password: str, db: Session):
     return user
 
 
-def is_valid_password(password: str):
+def is_valid_password(password: str, db: Session = Depends(get_db)) -> bool:
     """
-    Comprova si una contrasenya és vàlida basant-se en els següents criteris:
-    - Ha de tenir almenys 8 caràcters.
-    - Ha de contenir almenys un dígit.
-    - Ha de contenir almenys una lletra.
-    - Ha de contenir almenys un caràcter especial.
+    Comprueba si una contraseña es válida según los criterios de la empresa (tbl_config).
+    """
+    config = db.query(TblConfig).filter(TblConfig.empresa == 1).first()
+    if not config:
+        raise HTTPException(status_code=500, detail="Configuració de l'empresa no trobada")
 
-    Retorna:
-        bool: True si la contrasenya és vàlida, False en cas contrari.
-    """
-    if len(password) < settings.DEFAULT_MIN_PASSWORD_LENGTH:
+    if len(password) < config.longitud_minima_contrasenya:
         return False
     if not re.search('[0-9]', password):
         return False
@@ -60,57 +63,50 @@ def is_valid_password(password: str):
     return True
 
 
-def verify_password(plain_password, hashed_password):
+def create_access_token(user: Usuari) -> str:
     """
-    Verifica si una contrasenya en clar coincideix amb una contrasenya hashada donada.
-    """
-    return check_password_hash(hashed_password, plain_password)
-
-
-def create_access_token(user: Usuari):
-    """
-    Crea un token d'accés per a un usuari donat.
+    Crea un token de acceso para un usuario dado.
     """
     try:
         expire = datetime.now(timezone.utc) + timedelta(seconds=ACCESS_TOKEN_EXPIRE_SECONDS)
         payload = {
-            "correu": user.correu,
+            "correu_electronic": user.correu_electronic,
             "bloquejat": user.bloquejat,
-            "expire": expire.strftime("%Y-%m-%d %H:%M:%S")
+            "exp": expire
         }
-        return jwt.encode(payload, key=SECRET_KEY, algorithm=ALGORITHM)
+        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     except Exception as ex:
         print(str(ex))
         raise ex
 
 
-def verify_token(token: str) -> bool:
+def verify_token(token: str) -> Optional[dict]:
     """
-    Verifica si un token és vàlid.
+    Verifica si un token es válido y devuelve su payload.
     """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: Optional[str] = payload.get("correu")
-        if username is None:
-            return False
-        return True
-    except JWTError:
-        return False
+        if payload.get("correu_electronic") is None:
+            return None
+        return payload
+    except jwt.JWTError:
+        return None
 
 
-def get_current_user(token: str, db: Session = Depends(get_db)):
+def get_current_user(token: str, db: Session = Depends(get_db)) -> Usuari:
     """
-    Obté l'usuari actual basant-se en el token d'accés proporcionat.
+    Obtiene el usuario actual basado en el token de acceso proporcionado.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="No s'han pogut validar les credencials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    if not verify_token(token):
+    payload = verify_token(token)
+    if not payload:
         raise credentials_exception
-    username = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]).get("correu")
-    user = db.query(Usuari).filter(Usuari.correu == username).first()
+    username = payload.get("correu_electronic")
+    user = db.query(Usuari).filter(Usuari.correu_electronic == username).first()
     if user is None:
         raise credentials_exception
     return user
