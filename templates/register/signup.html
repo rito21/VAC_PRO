@@ -16,22 +16,44 @@
                     {% endif %}
                     <form action="/signup" method="post">
                         <div class="mb-3">
-                            <label for="nom_complet" class="form-label">Nom complet:</label>
+                            <label for="nom_complet" class="form-label">Nom:</label>
                             <input type="text" class="form-control" id="nom_complet" name="nom_complet" required>
                         </div>
                         <div class="mb-3">
+                            <label for="cognom" class="form-label">Cognom:</label>
+                            <input type="text" class="form-control" id="cognom" name="cognom" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="correu_electronic" class="form-label">Correu electrònic:</label>
-                            <input type="email" class="form-control" id="correu_electronic" name="correu_electronic"
-                                   required>
+                            <input type="email" class="form-control" id="correu_electronic" name="correu_electronic" required>
                         </div>
                         <div class="mb-3">
                             <label for="contrasenya" class="form-label">Contrasenya:</label>
                             <input type="password" class="form-control" id="contrasenya" name="contrasenya" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="confirmar_contrasenya" class="form-label">Confirmar contrasenya:</label>
+                            <input type="password" class="form-control" id="confirmar_contrasenya" name="confirmar_contrasenya" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="acceptar_privacitat" name="acceptar_privacitat" required>
+                            <label for="acceptar_privacitat" class="form-check-label">
+                                Accepto la <a href="/politica-privacitat" target="_blank">política de privacitat</a> i el tractament de les meves dades tal com es descriu.
+                            </label>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="promocions" name="promocions">
+                            <label for="promocions" class="form-check-label">
+                                Vull rebre ofertes i promocions per correu electrònic.
+                            </label>
+                        </div>
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Registra't</button>
                         </div>
                     </form>
+                    <p class="text-muted mt-3">
+                        Les dades que ens facilites seran tractades per WeatherTech, amb seu a [adreça], per gestionar el teu compte i prestar-te el servei sol·licitat. Les conservarem mentre el teu compte estigui actiu i podràs exercir els teus drets d’accés, rectificació o supressió enviant un correu a [email].
+                    </p>
                 </div>
             </div>
             <div class="text-center mt-3">
