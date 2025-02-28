@@ -19,39 +19,47 @@ async def signup(request: Request):
     return templates.TemplateResponse("register/signup.html", {"request": request})
 
 @router.post("/")
-def signup(
+async def signup(
     request: Request,
     correu_electronic: str = Form(...),
     contrasenya: str = Form(...),
-    confirmar_contrasenya: str = Form(...),  # Nuevo campo
+    confirmar_contrasenya: str = Form(...),
     nom: str = Form(...),
     cognoms: str = Form(...),
-    acceptar_privacitat: bool = Form(...),   # Checkbox requerido
-    promocions: bool = Form(False),          # Checkbox opcional
+    acceptar_privacitat: bool = Form(...),
+    promocions: bool = Form(False),
     db: Session = Depends(get_db)
 ):
+    print("Iniciando registro para:", correu_electronic)
     # Verificar si las contraseñas coinciden
     if contrasenya != confirmar_contrasenya:
+        print("Error: Contraseñas no coinciden")
         return templates.TemplateResponse("register/signup.html", {
             "request": request,
             "error_message": "Les contrasenyes no coincideixen"
         })
 
     # Verificar si el usuario ya existe
+    print("Verificando si el usuario existe...")
     db_user = db.query(Usuari).filter(Usuari.correu_electronic == correu_electronic).first()
     if db_user:
+        print("Error: Correu electrònic ya registrado")
         return templates.TemplateResponse("register/signup.html", {
             "request": request,
             "error_message": "Correu electrònic ja registrat"
         })
 
     # Obtener la configuración de la empresa
+    print("Obteniendo configuración de la empresa...")
     config = db.query(TblConfig).filter(TblConfig.empresa == 1).first()
     if not config:
+        print("Error: Configuración de la empresa no encontrada")
         raise HTTPException(status_code=500, detail="Configuració de l'empresa no trobada")
 
     # Validar la contraseña
-    if len(contrasenya) < config.longitud_minima_contrasenya or not is_valid_password(contrasenya):
+    print("Validando contraseña...")
+    if len(contrasenya) < config.longitud_minima_contrasenya or not is_valid_password(contrasenya, db):
+        print("Error: Contraseña no válida")
         return templates.TemplateResponse("register/signup.html", {
             "request": request,
             "error_message": f"La contrasenya ha de tenir almenys {config.longitud_minima_contrasenya} caràcters\n"
@@ -61,6 +69,7 @@ def signup(
         })
 
     # Crear el usuario
+    print("Creando datos del usuario...")
     user_data = UsuariCreate(
         correu_electronic=correu_electronic,
         contrasenya=contrasenya,
@@ -78,11 +87,15 @@ def signup(
     )
 
     # Guardar el usuario y enviar email de verificación
-    access_token = create_access_token(new_user)
-    send_verification_email(email=correu_electronic, token=access_token)
+    print("Guardando usuario en la base de datos...")
     create_user(db, new_user)
+    print("Generando token de acceso...")
+    access_token = create_access_token(new_user)
+    print("Enviando correo de verificación...")
+    await send_verification_email(email=correu_electronic, token=access_token)
 
     # Mostrar página de confirmación
+    print("Mostrando página de confirmación...")
     return templates.TemplateResponse("register/confirmation.html", {
         "request": request,
         "message": "S'ha enviat un correu de verificació al teu correu electrònic."

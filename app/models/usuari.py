@@ -17,7 +17,7 @@ class Usuari(Base):
     ultim_canvi_contrasenya = Column(DateTime, default=func.now())
     intents_fallits_login = Column(Integer, default=0)
     bloquejat = Column(Boolean, default=False)
-    baja = Column(Boolean, default=False)
+    baixa = Column(Boolean, default=False, name="baixa")  # Mapeamos a "baixa"
     compte_verificat = Column(Boolean, default=False)
 
     empresa = relationship("DbEmpresa", back_populates="usuaris")

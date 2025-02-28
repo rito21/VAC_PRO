@@ -8,7 +8,7 @@ import jwt
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.settings import ACCESS_TOKEN_EXPIRE_SECONDS, SECRET_KEY, ALGORITHM, settings
+from app.settings import settings  # Importamos solo la instancia settings
 from app.models.usuari import Usuari
 from app.models.config import TblConfig
 
@@ -44,7 +44,7 @@ def authenticate_user(email: str, password: str, db: Session) -> Usuari:
     return user
 
 
-def is_valid_password(password: str, db: Session = Depends(get_db)) -> bool:
+def is_valid_password(password: str, db: Session) -> bool:
     """
     Comprueba si una contraseña es válida según los criterios de la empresa (tbl_config).
     """
@@ -68,13 +68,13 @@ def create_access_token(user: Usuari) -> str:
     Crea un token de acceso para un usuario dado.
     """
     try:
-        expire = datetime.now(timezone.utc) + timedelta(seconds=ACCESS_TOKEN_EXPIRE_SECONDS)
+        expire = datetime.now(timezone.utc) + timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE_SECONDS)
         payload = {
             "correu_electronic": user.correu_electronic,
             "bloquejat": user.bloquejat,
             "exp": expire
         }
-        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+        return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     except Exception as ex:
         print(str(ex))
         raise ex
@@ -85,7 +85,7 @@ def verify_token(token: str) -> Optional[dict]:
     Verifica si un token es válido y devuelve su payload.
     """
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         if payload.get("correu_electronic") is None:
             return None
         return payload

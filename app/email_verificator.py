@@ -5,7 +5,6 @@ from starlette.responses import JSONResponse
 
 from app.settings import settings
 
-# Configuració de la connexió a la màquina de correu
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
     MAIL_PASSWORD=settings.MAIL_PASSWORD,
@@ -19,22 +18,15 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=settings.VALIDATE_CERTS
 )
 
-
 async def send_verification_email(email: EmailStr, token: str) -> JSONResponse:
-    """
-    Envia un correu electrònic amb un enllaç de verificació per a un compte d'usuari.
-    :param email: L'adreça de correu electrònic a la qual enviar el correu de verificació.
-    :param token: El token de verificació a incloure en l'enllaç.
-    :return: Resposta JSON amb l'estat de l'enviament.
-    """
     html_button = f"""<form method="post">
-                        <a class="signin__link"  href="http://localhost:8080/signup/verify/{token}">Verify account</a>      
+                        <a class="signin__link" href="http://localhost:8000/signup/verify/{token}">Verify account</a>
                      </form>"""
 
     message = MessageSchema(
         subject="Verificació de correu electrònic",
-        recipients=[email],  # Llista de correus electrònics
-        body=f"Segueix aquest enllaç per verificar el teu compte: http://localhost:8000/signup/verify?token={token}<BR><BR>"
+        recipients=[email],
+        body=f"Segueix aquest enllaç per verificar el teu compte: http://localhost:8000/signup/verify/{token}<br><br>"
              f"{html_button}",
         subtype=MessageType.html
     )

@@ -1,69 +1,31 @@
-import urllib
-from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
+from decouple import config
 
+class Settings:
+    # Base de datos (ya manejada en database.py, pero aquí para referencia)
+    DATABASE_USER = config("DATABASE_USER")
+    DATABASE_PASSWORD = config("DATABASE_PASSWORD")
+    DATABASE_HOST = config("DATABASE_HOST")
+    DATABASE_PORT = config("DATABASE_PORT", cast=int)
+    DATABASE_DBNAME = config("DATABASE_DBNAME")
+    DATABASE_SSL_MODE = config("DATABASE_SSL_MODE")
 
-class Settings(BaseSettings):
-    load_dotenv()  # Carrega variables d'entorn des del fitxer .env
+    # Seguridad y autenticación
+    SECRET_KEY = config("SECRET_KEY")
+    ALGORITHM = config("ALGORITHM")
+    ACCESS_TOKEN_EXPIRE_SECONDS = config("ACCESS_TOKEN_EXPIRE_SECONDS", cast=int)  # Asegúrate de que coincida con .env
+    DEFAULT_MIN_PASSWORD_LENGTH = config("DEFAULT_MIN_PASSWORD_LENGTH", cast=int)
+    MAX_LOGIN_ATTEMPTS = config("MAX_LOGIN_ATTEMPTS", cast=int)
 
-    # Configuració de la base de dades
-    DATABASE_USER: str
-    DATABASE_PASSWORD: str
-    DATABASE_HOST: str
-    DATABASE_PORT: int
-    DATABASE_DBNAME: str
-    DATABASE_SSL_MODE: str
-
-    # Configuració de seguretat
-    SECRET_KEY: str
-    ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_SECONDS: int
-
-    # Configuració de correu electrònic
-    MAIL_USERNAME: str
-    MAIL_PASSWORD: str
-    MAIL_FROM: str
-    MAIL_PORT: int
-    MAIL_SERVER: str
-    MAIL_FROM_NAME: str
-    MAIL_STARTTLS: bool
-    MAIL_SSL_TLS: bool
-    USE_CREDENTIALS: bool
-    VALIDATE_CERTS: bool
-
-    # Altres configuracions
-    DEFAULT_MIN_PASSWORD_LENGTH: int  # Ara es pot configurar per empresa a tbl_config
-    MAX_LOGIN_ATTEMPTS: int  # També configurable per empresa
-    TESTING: bool = False
-
-    @property
-    def get_database_url(self):
-        """
-        Retorna l'URL de la base de dades.
-        Si està en mode TESTING, retorna una base de dades SQLite.
-        """
-        if self.TESTING:
-            return "sqlite:///./test.db"  # Base de dades de test
-        return self.database_url
-
-    class Config:
-        env_file = ".env"  # Indica el fitxer d'entorn
-
+    # Configuración del correo
+    MAIL_USERNAME = config("MAIL_USERNAME")
+    MAIL_PASSWORD = config("MAIL_PASSWORD")
+    MAIL_FROM = config("MAIL_FROM")
+    MAIL_PORT = config("MAIL_PORT", cast=int)
+    MAIL_SERVER = config("MAIL_SERVER")
+    MAIL_FROM_NAME = config("MAIL_FROM_NAME")
+    MAIL_STARTTLS = config("MAIL_STARTTLS", cast=bool)
+    MAIL_SSL_TLS = config("MAIL_SSL_TLS", cast=bool)
+    USE_CREDENTIALS = config("USE_CREDENTIALS", cast=bool)
+    VALIDATE_CERTS = config("VALIDATE_CERTS", cast=bool)
 
 settings = Settings()
-
-# Constants de seguretat
-SECRET_KEY = settings.SECRET_KEY
-ALGORITHM = settings.ALGORITHM
-ACCESS_TOKEN_EXPIRE_SECONDS = settings.ACCESS_TOKEN_EXPIRE_SECONDS
-COOKIE_NAME = "access_token"
-
-# Codifica la contrasenya per evitar errors amb caràcters especials (@, #, $, etc.)
-settings.DATABASE_PASSWORD = urllib.parse.quote_plus(settings.DATABASE_PASSWORD)
-
-# URI per SQLAlchemy amb PostgreSQL i psycopg2
-SQLALCHEMY_DATABASE_URI: str = (
-    f"postgresql+psycopg2://{settings.DATABASE_USER}:{settings.DATABASE_PASSWORD}"
-    f"@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/{settings.DATABASE_DBNAME}"
-    f"?sslmode={settings.DATABASE_SSL_MODE}"
-)
