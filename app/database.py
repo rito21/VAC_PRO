@@ -3,12 +3,12 @@ from sqlalchemy.orm import sessionmaker, configure_mappers
 from sqlalchemy.ext.declarative import declarative_base
 from decouple import config
 import os
-import urllib.parse  # Para codificar parámetros de la URL
+import urllib.parse
 
-# Base declarativa para los modelos (definirla lo antes posible)
+# Base declarativa para los modelos
 Base = declarative_base()
 
-# Configuración de la base de datos a partir de variables separadas
+# Configuración de la base de datos
 print("Leyendo variables de entorno...")
 RAW_DATABASE_USER = config("DATABASE_USER", cast=str, default="postgres")
 print(f"RAW_DATABASE_USER: {RAW_DATABASE_USER!r} (bytes: {RAW_DATABASE_USER.encode('utf-8')!r})")
@@ -48,16 +48,15 @@ print(f"DATABASE_PORT (encoded): {DATABASE_PORT!r}")
 print(f"DATABASE_DBNAME (encoded): {DATABASE_DBNAME!r}")
 print(f"DATABASE_SSL_MODE (encoded): {DATABASE_SSL_MODE!r}")
 
-# Construir la cadena de conexión con parámetros codificados
+# Construir la cadena de conexión
 DATABASE_URL = (
     f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_DBNAME}"
     f"?sslmode={DATABASE_SSL_MODE}&client_encoding=utf8"
 )
 
-# Depurar: Imprimir la URL de conexión
 print(f"DATABASE_URL: {DATABASE_URL!r} (bytes: {DATABASE_URL.encode('utf-8')!r})")
 
-# Crear el motor de SQLAlchemy con connect_args explícito
+# Crear el motor de SQLAlchemy
 engine = create_engine(DATABASE_URL, connect_args={"client_encoding": "utf8"})
 
 # Crear una fábrica de sesiones
@@ -77,12 +76,11 @@ def init_db():
     from app.models.empresa import DbEmpresa
     from app.models.usuari import Usuari
     from app.models.estacio_meteo import EstacioMeteo
-    from app.models.lectura import Lectura
+    from app.models.measurement import Measurement
     from app.models.tipus_sensor import TipusSensor
     from app.models.sensor import Sensor
     from app.models.config import TblConfig
     from app.models.app_config import AppConfig
-    from app.models.device import Device
     from app.models.measurement import Measurement
 
     configure_mappers()

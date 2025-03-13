@@ -1,15 +1,14 @@
-from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, Float, DateTime
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from sqlalchemy.sql import func
 from app.database import Base
 
 class Measurement(Base):
-    __tablename__ = "measurements"
+    __tablename__ = "tbl_lectura"
 
     id = Column(Integer, primary_key=True, index=True)
-    value = Column(Float, nullable=False)
-    timestamp = Column(DateTime, nullable=False)
     id_sensor = Column(Integer, ForeignKey("tbl_sensor.id"), nullable=False)
+    valor = Column(Float, nullable=False)
+    data_lectura = Column(DateTime, default=func.now())
 
-    # Relación con Sensor
     sensor = relationship("Sensor", back_populates="measurements")

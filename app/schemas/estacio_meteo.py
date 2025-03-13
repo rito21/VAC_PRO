@@ -1,9 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
 class EstacioMeteoBase(BaseModel):
-    nom: str
+    nom: str = Field(..., alias="name")
+    latitude: float
+    longitude: float
     descripcio: Optional[str] = None
     ubicacio: Optional[str] = None
     id_empresa: int
@@ -21,4 +23,4 @@ class EstacioMeteo(EstacioMeteoBase):
     ultima_connexio: Optional[datetime] = None
 
     class Config:
-        from_attributes = True 
+        from_attributes = True

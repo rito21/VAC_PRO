@@ -19,17 +19,17 @@ from sqlalchemy.orm import configure_mappers
 from app.models.empresa import DbEmpresa
 from app.models.usuari import Usuari
 from app.models.config import TblConfig
-from app.models.device import Device
+
 from app.models.measurement import Measurement
 from app.models.empresa import DbEmpresa
 from app.models.usuari import Usuari
 from app.models.estacio_meteo import EstacioMeteo
-from app.models.lectura import Lectura
+from app.models.measurement import Measurement
 from app.models.tipus_sensor import TipusSensor
 from app.models.sensor import Sensor
 from app.models.config import TblConfig
 from app.models.app_config import AppConfig
-from app.models.device import Device
+
 from app.models.measurement import Measurement
 # Forzamos la configuración de los mapeadores después de importar todos los modelos
 configure_mappers()
