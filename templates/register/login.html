@@ -1,38 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Login - WeatherTech{% endblock %}
+{% block title %}Inici de Sessió - VAC{% endblock %}
 
 {% block content %}
-<div class="container h-100">
-    <div class="row h-100 justify-content-center align-items-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title text-center">Iniciar Sessió</h3>
-                    {% if error_message %}
-                        <div class="alert alert-danger" role="alert">
-                            {{ error_message }}
-                        </div>
-                    {% endif %}
-                    <form action="/login" method="post">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Correu electrònic:</label>
-                            <input type="email" class="form-control" id="username" name="username" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Contrasenya:</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Iniciar sessió</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="text-center mt-3">
-                <a href="/signup">No tens un compte? Registra't</a>
-            </div>
-        </div>
-    </div>
-</div>
+    <section class="login-form">
+        <h1>Inici de Sessió</h1>
+        {% if error_message %}
+            <p class="error">{{ error_message }}</p>
+        {% endif %}
+        <form method="post" action="/login/">
+            <label for="email">Correu electrònic:</label>
+            <input type="email" id="email" name="email" required>
+            <label for="password">Contrasenya:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Iniciar Sessió</button>
+        </form>
+        <p>No tens compte? <a href="/signup/">Registra't aquí</a></p>
+    </section>
 {% endblock %}

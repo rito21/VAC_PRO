@@ -1,120 +1,130 @@
-from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, Request, status, Form, HTTPException
+from fastapi import APIRouter, Depends, Request, Form, HTTPException
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from starlette.responses import RedirectResponse
-from app.auth.login import hash_password, is_valid_password, create_access_token, verify_token
 from app.database import get_db
-from app.email_verificator import send_verification_email
-from app.services.crud import create_user
+from app.auth.login import get_password_hash, verify_password, create_access_token, verify_token
 from app.models.usuari import Usuari
-from app.models.config import TblConfig
-from app.schemas.usuari import UsuariCreate
+import re
+from datetime import timedelta
 
 router = APIRouter(prefix='/signup', tags=['signup'])
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/")
-async def signup(request: Request):
+async def signup_page(request: Request):
     return templates.TemplateResponse("register/signup.html", {"request": request})
 
 @router.post("/")
 async def signup(
     request: Request,
+    nom: str = Form(...),
+    cognoms: str = Form(...),
     correu_electronic: str = Form(...),
     contrasenya: str = Form(...),
     confirmar_contrasenya: str = Form(...),
-    nom: str = Form(...),
-    cognoms: str = Form(...),
-    acceptar_privacitat: bool = Form(...),
+    acceptar_privacitat: bool = Form(False),
     promocions: bool = Form(False),
     db: Session = Depends(get_db)
 ):
-    print("Iniciando registro para:", correu_electronic)
-    # Verificar si las contraseñas coinciden
+    # Validar que las contraseñas coincidan
     if contrasenya != confirmar_contrasenya:
-        print("Error: Contraseñas no coinciden")
         return templates.TemplateResponse("register/signup.html", {
             "request": request,
-            "error_message": "Les contrasenyes no coincideixen"
+            "error_message": "Les contrasenyes no coincideixen",
+            "nom": nom,
+            "cognoms": cognoms,
+            "correu_electronic": correu_electronic
         })
 
-    # Verificar si el usuario ya existe
-    print("Verificando si el usuario existe...")
-    db_user = db.query(Usuari).filter(Usuari.correu_electronic == correu_electronic).first()
-    if db_user:
-        print("Error: Correu electrònic ya registrado")
+    # Validar la contraseña (mínimo 8 caracteres, 1 mayúscula, 1 número, 1 símbolo)
+    if not re.match(r"^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$", contrasenya):
         return templates.TemplateResponse("register/signup.html", {
             "request": request,
-            "error_message": "Correu electrònic ja registrat"
+            "error_message": "La contrasenya ha de tenir almenys 8 caràcters, incloure 1 majúscula, 1 número i 1 símbol (!@#$%^&*)",
+            "nom": nom,
+            "cognoms": cognoms,
+            "correu_electronic": correu_electronic
         })
 
-    # Obtener la configuración de la empresa
-    print("Obteniendo configuración de la empresa...")
-    config = db.query(TblConfig).filter(TblConfig.empresa == 1).first()
-    if not config:
-        print("Error: Configuración de la empresa no encontrada")
-        raise HTTPException(status_code=500, detail="Configuració de l'empresa no trobada")
-
-    # Validar la contraseña
-    print("Validando contraseña...")
-    if len(contrasenya) < config.longitud_minima_contrasenya or not is_valid_password(contrasenya, db):
-        print("Error: Contraseña no válida")
+    # Validar que se haya aceptado la política de privacidad
+    if not acceptar_privacitat:
         return templates.TemplateResponse("register/signup.html", {
             "request": request,
-            "error_message": f"La contrasenya ha de tenir almenys {config.longitud_minima_contrasenya} caràcters\n"
-                             "Ha de contenir almenys un dígit\n"
-                             "Ha de contenir almenys una lletra\n"
-                             "Ha de contenir almenys un caràcter especial -> !@#$%^&*(),.?"
+            "error_message": "Has d'acceptar la política de privacitat",
+            "nom": nom,
+            "cognoms": cognoms,
+            "correu_electronic": correu_electronic
         })
 
-    # Crear el usuario
-    print("Creando datos del usuario...")
-    user_data = UsuariCreate(
-        correu_electronic=correu_electronic,
-        contrasenya=contrasenya,
+    # Verificar si el correo ya está registrado
+    existing_user = db.query(Usuari).filter(Usuari.correu_electronic == correu_electronic).first()
+    if existing_user:
+        return templates.TemplateResponse("register/signup.html", {
+            "request": request,
+            "error_message": "Aquest correu electrònic ja està registrat",
+            "nom": nom,
+            "cognoms": cognoms,
+            "correu_electronic": correu_electronic
+        })
+
+    # Crear un nuevo usuario
+    hashed_password = get_password_hash(contrasenya)
+    new_user = Usuari(
+        id_empresa=1,  # Asumimos que todos los usuarios pertenecen a la empresa con id=1
         nom=nom,
         cognoms=cognoms,
-        id_empresa=1
+        correu_electronic=correu_electronic,
+        contrasenya=hashed_password,
+        bloquejat=False
     )
-    new_user = Usuari(
-        correu_electronic=user_data.correu_electronic,
-        contrasenya=hash_password(user_data.contrasenya),
-        nom=user_data.nom,
-        cognoms=user_data.cognoms,
-        id_empresa=user_data.id_empresa,
-        data_registre=datetime.now(timezone.utc),
-    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
 
-    # Guardar el usuario y enviar email de verificación
-    print("Guardando usuario en la base de datos...")
-    create_user(db, new_user)
-    print("Generando token de acceso...")
-    access_token = create_access_token(new_user)
-    print("Enviando correo de verificación...")
-    await send_verification_email(email=correu_electronic, token=access_token)
+    # Generar token de verificación
+    verification_token = create_access_token(data={"sub": correu_electronic, "bloquejat": False}, expires_delta=timedelta(minutes=30))
 
-    # Mostrar página de confirmación
-    print("Mostrando página de confirmación...")
-    return templates.TemplateResponse("register/confirmation.html", {
+    # En un entorno real, enviaríamos un correo electrónico con el enlace de verificación
+    # Por ahora, simulamos el enlace
+    verification_url = f"{request.base_url}signup/verify/{verification_token}"
+
+    return templates.TemplateResponse("register/signup.html", {
         "request": request,
-        "message": "S'ha enviat un correu de verificació al teu correu electrònic."
+        "success_message": f"Registre completat! Revisa el teu correu electrònic per verificar el teu compte. Enlace de verificación: {verification_url}",
+        "nom": nom,
+        "cognoms": cognoms,
+        "correu_electronic": correu_electronic
     })
 
-@router.get('/verify/{token}')
-def verify_user(token: str, db: Session = Depends(get_db)):
+@router.get("/verify/{token}", response_model=None)
+async def verify_user(token: str, request: Request, db: Session = Depends(get_db)):
     payload = verify_token(token)
-    username = payload.get("correu_electronic")
-    db_user = db.query(Usuari).filter(Usuari.correu_electronic == username).first()
+    email = payload.get("sub")
+    if email is None:
+        return templates.TemplateResponse("register/verify.html", {
+            "request": request,
+            "error_message": "Enllaç de verificació invàlid"
+        })
 
-    if not username or not db_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Credencials no correctes"
-        )
+    user = db.query(Usuari).filter(Usuari.correu_electronic == email).first()
+    if not user:
+        return templates.TemplateResponse("register/verify.html", {
+            "request": request,
+            "error_message": "Usuari no trobat"
+        })
 
-    if db_user.compte_verificat:
-        return "El teu compte ja està activat!"
+    if user.compte_verificat:
+        return templates.TemplateResponse("register/verify.html", {
+            "request": request,
+            "success_message": "El teu compte ja està verificat. Pots iniciar sessió."
+        })
 
-    db_user.compte_verificat = True
+    user.compte_verificat = True
     db.commit()
-    return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    db.refresh(user)
+
+    return templates.TemplateResponse("register/verify.html", {
+        "request": request,
+        "success_message": "Compte verificat amb èxit! Ja pots iniciar sessió."
+    })

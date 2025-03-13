@@ -8,7 +8,7 @@ class UsuariBase(BaseModel):
 
 class UsuariCreate(UsuariBase):
     contrasenya: str
-    id_empresa: int = 1  # Valor por defecto para la empresa única
+    id_empresa: int = 1  # Valor por defecto para empresa única
 
 class Usuari(UsuariBase):
     id: int
@@ -20,4 +20,4 @@ class Usuari(UsuariBase):
     baixa: bool
     compte_verificat: bool
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)  # ✅ Corrección para Pydantic v2

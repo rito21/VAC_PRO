@@ -1,122 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}Inici - WeatherTech{% endblock %}
+{% block title %}Inici - VAC{% endblock %}
 
 {% block content %}
-
-    <!-- Hero Section -->
-    <section id="hero" class="hero section">
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-        <div class="row align-items-center">
-          <div class="col-lg-6">
-            <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
-
-              <h1 class="mb-4">
-                Maecenas Vitae <br>
-                Consectetur Led <br>
-                <span class="accent-text">Vestibulum Ante</span>
-              </h1>
-
-              <p class="mb-4 mb-md-5">
-                Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt.
-                Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna.
-              </p>
-
+    <section class="hero">
+        <h1>Registre i Anàlisi de Dades Ambientals amb VAC</h1>
+        <p>Som una empresa local a Vilafranca del Penedès, Catalunya, que registra i analitza dades ambientals (pressió atmosfèrica, humitat, temperatura) dels teus dispositius, actualitzades cada 3 hores.</p>
+        <a href="/signup" class="cta-button">Registra't ara</a>
+    </section>
+    <section class="services">
+        <h2>Els nostres serveis</h2>
+        <div class="service-details">
+            <div class="service-item">
+                <h3>Registre automàtic</h3>
+                <p>Registra les dades dels teus dispositius cada 3 hores per tenir un seguiment constant.</p>
             </div>
-          </div>
-
-          <div class="col-lg-6">
-            <div class="informatic" data-aos="zoom-out" data-aos-delay="300">
-              <img src="../static/assets/img/informatic.png" alt="informatic" class="img-fluid">
+            <div class="service-item">
+                <h3>Anàlisi flexible</h3>
+                <p>Consulta les dades per dia, setmana o fins a un mes, amb gràfics i estadístiques detallades.</p>
             </div>
-          </div>
+            <div class="service-item">
+                <h3>Ideal per a agricultors</h3>
+                <p>Monitora les condicions dels teus camps per optimitzar el cultiu i la gestió dels recursos.</p>
+            </div>
         </div>
-      </div>
+    </section>
 
-    </section><!-- /Hero Section -->
+    <!-- Banner de cookies -->
+    <div id="cookie-banner" style="display: none; position: fixed; bottom: 0; width: 100%; background-color: #333; color: white; padding: 10px; text-align: center;">
+        <p>Aquest lloc web utilitza cookies per millorar l'experiència de l'usuari. <a href="/politica-cookies/" style="color: #00f; text-decoration: underline;">Més informació</a>.</p>
+        <button id="accept-cookies" style="background-color: #4CAF50; color: white; padding: 5px 10px; border: none; cursor: pointer;">Acceptar</button>
+    </div>
 
-    <!-- About Section -->
-    <section id="about" class="about section">
+    <!-- Script para manejar el banner de cookies -->
+    <script>
+        // Función para mostrar u ocultar el banner de cookies
+        function manageCookieBanner() {
+            // Verificamos si estamos en la página de inicio
+            const isHomePage = window.location.pathname === '/';
 
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
+            // Verificamos si el usuario ya aceptó las cookies
+            const cookiesAccepted = localStorage.getItem('cookiesAccepted');
 
-        <div class="row gy-4 align-items-center justify-content-between">
+            // Mostramos el banner solo si estamos en la página de inicio y las cookies no han sido aceptadas
+            if (isHomePage && !cookiesAccepted) {
+                document.getElementById('cookie-banner').style.display = 'block';
+            } else {
+                document.getElementById('cookie-banner').style.display = 'none';
+            }
+        }
 
-          <div class="col-xl-5" data-aos="fade-up" data-aos-delay="200">
-            <span class="about-meta">MORE ABOUT US</span>
-            <h2 class="about-title">Voluptas enim suscipit temporibus</h2>
-            <p class="about-description">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+        // Ejecutamos la función al cargar la página
+        document.addEventListener('DOMContentLoaded', manageCookieBanner);
 
-            <div class="row feature-list-wrapper">
-              <div class="col-md-6">
-                <ul class="feature-list">
-                  <li><i class="bi bi-check-circle-fill"></i> Lorem ipsum dolor sit amet</li>
-                  <li><i class="bi bi-check-circle-fill"></i> Consectetur adipiscing elit</li>
-                  <li><i class="bi bi-check-circle-fill"></i> Sed do eiusmod tempor</li>
-                </ul>
-              </div>
-              <div class="col-md-6">
-                <ul class="feature-list">
-                  <li><i class="bi bi-check-circle-fill"></i> Incididunt ut labore et</li>
-                  <li><i class="bi bi-check-circle-fill"></i> Dolore magna aliqua</li>
-                  <li><i class="bi bi-check-circle-fill"></i> Ut enim ad minim veniam</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-    </section><!-- /About Section -->
-
-    <!-- Contact Section -->
-    <section id="contact" class="contact section light-background">
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-          <div class="col-lg-7">
-            <div class="contact-form" data-aos="fade-up" data-aos-delay="300">
-              <h3>Contact</h3>
-              <p>Praesent sapien massa, convallis a pellentesque nec, egestas non nisi. Vestibulum ante ipsum primis.</p>
-
-              <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
-                <div class="row gy-4">
-
-                  <div class="col-md-6">
-                    <input type="text" name="name" class="form-control" placeholder="Your Name" required="">
-                  </div>
-
-                  <div class="col-md-6 ">
-                    <input type="email" class="form-control" name="email" placeholder="Your Email" required="">
-                  </div>
-
-                  <div class="col-12">
-                    <input type="text" class="form-control" name="subject" placeholder="Subject" required="">
-                  </div>
-
-                  <div class="col-12">
-                    <textarea class="form-control" name="message" rows="6" placeholder="Message" required=""></textarea>
-                  </div>
-
-                  <div class="col-12 text-center">
-                    <div class="loading">Loading</div>
-                    <div class="error-message"></div>
-                    <div class="sent-message">Your message has been sent. Thank you!</div>
-
-                    <button type="submit" class="btn">Send Message</button>
-                  </div>
-
-                </div>
-              </form>
-
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-    </section><!-- /Contact Section -->
+        // Manejar el evento de aceptación de cookies
+        document.getElementById('accept-cookies').addEventListener('click', function() {
+            localStorage.setItem('cookiesAccepted', 'true');
+            document.cookie = "cookies_accepted=true; path=/; max-age=31536000"; // Cookie válida por 1 año
+            document.getElementById('cookie-banner').style.display = 'none';
+        });
+    </script>
 {% endblock %}

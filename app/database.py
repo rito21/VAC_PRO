@@ -1,99 +1,89 @@
-from sqlalchemy import create_engine, inspect
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, configure_mappers
+from sqlalchemy.ext.declarative import declarative_base
 from decouple import config
-import urllib.parse
+import os
+import urllib.parse  # Para codificar parámetros de la URL
 
-# Configuración de la URL de la base de datos desde .env
-DATABASE_USER = config("DATABASE_USER")
-DATABASE_PASSWORD = config("DATABASE_PASSWORD")
-DATABASE_HOST = config("DATABASE_HOST")
-DATABASE_PORT = config("DATABASE_PORT")
-DATABASE_DBNAME = config("DATABASE_DBNAME")
-DATABASE_SSL_MODE = config("DATABASE_SSL_MODE", default="prefer")
-
-# Codificamos usuario y contraseña
-DATABASE_USER_ENCODED = urllib.parse.quote(DATABASE_USER)
-DATABASE_PASSWORD_ENCODED = urllib.parse.quote(DATABASE_PASSWORD)
-
-# Usamos psycopg explícitamente
-DATABASE_URL = f"postgresql+psycopg://{DATABASE_USER_ENCODED}:{DATABASE_PASSWORD_ENCODED}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_DBNAME}?sslmode={DATABASE_SSL_MODE}"
-
-# Configuramos el engine con parámetros para manejar reconexiones y estabilidad
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"sslmode": DATABASE_SSL_MODE},
-    pool_pre_ping=True,  # Verifica la conexión antes de usarla
-    pool_size=5,  # Tamaño del pool de conexiones
-    max_overflow=10,  # Máximo de conexiones adicionales
-    pool_timeout=30,  # Tiempo máximo de espera para una conexión
-    pool_recycle=1800,  # Recicla conexiones cada 30 minutos para evitar timeouts
-    echo=True  # Habilita logs detallados de SQLAlchemy para depurar
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Base declarativa para los modelos (definirla lo antes posible)
 Base = declarative_base()
 
+# Configuración de la base de datos a partir de variables separadas
+print("Leyendo variables de entorno...")
+RAW_DATABASE_USER = config("DATABASE_USER", cast=str, default="postgres")
+print(f"RAW_DATABASE_USER: {RAW_DATABASE_USER!r} (bytes: {RAW_DATABASE_USER.encode('utf-8')!r})")
+RAW_DATABASE_PASSWORD = config("DATABASE_PASSWORD", cast=str, default="password")
+print(f"RAW_DATABASE_PASSWORD: {RAW_DATABASE_PASSWORD!r} (bytes: {RAW_DATABASE_PASSWORD.encode('utf-8')!r})")
+RAW_DATABASE_HOST = config("DATABASE_HOST", cast=str, default="localhost")
+print(f"RAW_DATABASE_HOST: {RAW_DATABASE_HOST!r} (bytes: {RAW_DATABASE_HOST.encode('utf-8')!r})")
+RAW_DATABASE_PORT = config("DATABASE_PORT", cast=str, default="5432")
+print(f"RAW_DATABASE_PORT: {RAW_DATABASE_PORT!r} (bytes: {RAW_DATABASE_PORT.encode('utf-8')!r})")
+RAW_DATABASE_DBNAME = config("DATABASE_DBNAME", cast=str, default="weather_db")
+print(f"RAW_DATABASE_DBNAME: {RAW_DATABASE_DBNAME!r} (bytes: {RAW_DATABASE_DBNAME.encode('utf-8')!r})")
+RAW_DATABASE_SSL_MODE = config("DATABASE_SSL_MODE", default="prefer", cast=str)
+print(f"RAW_DATABASE_SSL_MODE: {RAW_DATABASE_SSL_MODE!r} (bytes: {RAW_DATABASE_SSL_MODE.encode('utf-8')!r})")
 
-def init_db():
-    """Inicializa la base de datos con una empresa predeterminada y su configuración."""
-    from app.models.empresa import DbEmpresa
-    from app.models.usuari import Usuari
-    from app.models.config import TblConfig
+# Función para depurar y forzar codificación UTF-8
+def ensure_utf8(value):
+    if value is None:
+        return ""
+    try:
+        return value.encode('utf-8', errors='strict').decode('utf-8', errors='replace')
+    except UnicodeEncodeError:
+        return value.encode('latin-1', errors='replace').decode('utf-8', errors='replace')
 
-    # Verificamos si las tablas ya existen
-    inspector = inspect(engine)
-    tables_exist = inspector.has_table("db_empresa")
+# Aplicar la conversión a todas las variables y codificarlas para URL
+DATABASE_USER = urllib.parse.quote_plus(ensure_utf8(RAW_DATABASE_USER))
+DATABASE_PASSWORD = urllib.parse.quote_plus(ensure_utf8(RAW_DATABASE_PASSWORD))
+DATABASE_HOST = urllib.parse.quote_plus(ensure_utf8(RAW_DATABASE_HOST))
+DATABASE_PORT = urllib.parse.quote_plus(ensure_utf8(RAW_DATABASE_PORT))
+DATABASE_DBNAME = urllib.parse.quote_plus(ensure_utf8(RAW_DATABASE_DBNAME))
+DATABASE_SSL_MODE = urllib.parse.quote_plus(ensure_utf8(RAW_DATABASE_SSL_MODE))
 
-    # Creamos las tablas si no existen
-    if not tables_exist:
-        print("Creando tablas...")
-        Base.metadata.create_all(bind=engine)
+# Depurar: Imprimir los valores después de la conversión y codificación
+print(f"DATABASE_USER (encoded): {DATABASE_USER!r}")
+print(f"DATABASE_PASSWORD (encoded): {DATABASE_PASSWORD!r}")
+print(f"DATABASE_HOST (encoded): {DATABASE_HOST!r}")
+print(f"DATABASE_PORT (encoded): {DATABASE_PORT!r}")
+print(f"DATABASE_DBNAME (encoded): {DATABASE_DBNAME!r}")
+print(f"DATABASE_SSL_MODE (encoded): {DATABASE_SSL_MODE!r}")
 
-    # Inicializamos datos
-    with SessionLocal() as db:
-        # Verificar si la empresa existe
-        empresa = db.query(DbEmpresa).filter(DbEmpresa.id == 1).first()
-        print(f"Empresa encontrada: {empresa}")
-        if not empresa:
-            print("Creando empresa predeterminada (id=1)...")
-            empresa = DbEmpresa(id=1, nom_empresa="Empresa Única")
-            db.add(empresa)
-            try:
-                db.commit()
-                db.refresh(empresa)
-                print("Empresa creada correctamente:", empresa.id)
-            except Exception as e:
-                print(f"Error al crear empresa: {e}")
-                db.rollback()
-                raise
+# Construir la cadena de conexión con parámetros codificados
+DATABASE_URL = (
+    f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_DBNAME}"
+    f"?sslmode={DATABASE_SSL_MODE}&client_encoding=utf8"
+)
 
-        # Verificar si la configuración existe
-        config = db.query(TblConfig).filter(TblConfig.empresa == 1).first()
-        print(f"Configuración encontrada: {config}")
-        if not config:
-            print("Creando configuración predeterminada para empresa 1...")
-            config = TblConfig(
-                empresa=1,
-                longitud_minima_contrasenya=8,
-                intents_fallits_maxims=5
-            )
-            db.add(config)
-            try:
-                db.commit()
-                print("Configuración creada correctamente:", config.id)
-            except Exception as e:
-                print(f"Error al crear configuración: {e}")
-                db.rollback()
-                raise
+# Depurar: Imprimir la URL de conexión
+print(f"DATABASE_URL: {DATABASE_URL!r} (bytes: {DATABASE_URL.encode('utf-8')!r})")
 
+# Crear el motor de SQLAlchemy con connect_args explícito
+engine = create_engine(DATABASE_URL, connect_args={"client_encoding": "utf8"})
 
+# Crear una fábrica de sesiones
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Función para obtener la sesión de la base de datos
 def get_db():
-    """Dependencia para obtener una sesión de base de datos."""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
+# Función para inicializar la base de datos
+def init_db():
+    # Importar los modelos aquí, después de que Base esté definido
+    from app.models.empresa import DbEmpresa
+    from app.models.usuari import Usuari
+    from app.models.estacio_meteo import EstacioMeteo
+    from app.models.lectura import Lectura
+    from app.models.tipus_sensor import TipusSensor
+    from app.models.sensor import Sensor
+    from app.models.config import TblConfig
+    from app.models.app_config import AppConfig
+    from app.models.device import Device
+    from app.models.measurement import Measurement
 
-# Llamamos a init_db al importar el módulo
-init_db()
+    configure_mappers()
+    Base.metadata.create_all(bind=engine)

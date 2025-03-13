@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}VAC - Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>Benvingut al teu Dashboard, {{ user.nom }} {{ user.cognoms }}!</h1>
+    <p>Aquí pots gestionar els teus dispositius i veure les dades ambientals registrades.</p>
+    <div class="dashboard-actions">
+        <a href="/dashboard/devices/register" class="cta-button">Registrar un Dispositiu</a>
+        <a href="/dashboard/devices/data" class="cta-button">Veure Dades de Dispositius</a>
+        <a href="/dashboard/devices/map" class="cta-button">Mapa de Dispositius</a>
+    </div>
+</div>
+{% endblock %}

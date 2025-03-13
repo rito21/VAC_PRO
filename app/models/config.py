@@ -1,16 +1,16 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from app.database import Base
-
 
 class TblConfig(Base):
     __tablename__ = "tbl_config"
 
     id = Column(Integer, primary_key=True, index=True)
-    empresa = Column(Integer, ForeignKey("db_empresa.id"), nullable=False)
+    empresa_id = Column(Integer, ForeignKey("db_empresa.id"), nullable=False, unique=True)
     longitud_minima_contrasenya = Column(Integer, default=8)
     intents_fallits_maxims = Column(Integer, default=5)
-    data_ultim_canvi_contrasenya = Column(DateTime, default=func.now())
+    data_ultim_canvi_contrasenya = Column(DateTime, default=datetime.utcnow)
 
-    empresa_rel = relationship("DbEmpresa", back_populates="configs")
+    # Relación con DbEmpresa (usamos string)
+    empresa = relationship("DbEmpresa", back_populates="configs")
